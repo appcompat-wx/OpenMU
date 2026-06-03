@@ -50,4 +50,26 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="CompileSubProjectAssets" BeforeTargets="CopyStaticWebAssetsFromLibraries">
+    <!-- 强制触发 AdminPanel 和 Map 的 SCSS/TS 编译，确保产物文件存在 -->
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Web\AdminPanel\MUnique.OpenMU.Web.AdminPanel.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);ci=false" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Web\Map\MUnique.OpenMU.Web.Map.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);ci=false" />
+  </Target>
+  <Target Name="CopyStaticWebAssetsFromLibraries" AfterTargets="Publish">
+    <ItemGroup>
+      <_AdminPanelAssets Include="$(MSBuildThisFileDirectory)..\Web\AdminPanel\wwwroot\**\*" />
+      <_MapAssets Include="$(MSBuildThisFileDirectory)..\Web\Map\wwwroot\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_AdminPanelAssets)"
+          DestinationFiles="@(_AdminPanelAssets->'$(PublishDir)wwwroot\_content\MUnique.OpenMU.Web.AdminPanel\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_MapAssets)"
+          DestinationFiles="@(_MapAssets->'$(PublishDir)wwwroot\_content\MUnique.OpenMU.Web.Map\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 </Project>
